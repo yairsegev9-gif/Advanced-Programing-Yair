@@ -1,5 +1,7 @@
-package test;
+package graph;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Message {
@@ -9,31 +11,29 @@ public class Message {
     public final double asDouble;
     public final Date date;
 
-
     public Message(String text) {
         this.asText = text;
-        this.data = text.getBytes();
+        this.data = text.getBytes(StandardCharsets.UTF_8);
 
-
-        double tempDouble;
+        double parsedValue;
         try {
-            tempDouble = Double.parseDouble(text);
+            parsedValue = Double.parseDouble(text);
         } catch (NumberFormatException e) {
-
-            tempDouble = Double.NaN;
+            parsedValue = Double.NaN;
         }
-        this.asDouble = tempDouble;
 
+        this.asDouble = parsedValue;
         this.date = new Date();
     }
-
 
     public Message(double number) {
         this(String.valueOf(number));
     }
 
-
     public Message(byte[] bytes) {
-        this(new String(bytes));
+        this(new String(
+                Arrays.copyOf(bytes, bytes.length),
+                StandardCharsets.UTF_8
+        ));
     }
 }

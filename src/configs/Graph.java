@@ -2,8 +2,8 @@ package configs;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import test.Agent;
-import test.Topic;
+import graph.Agent;
+import graph.Topic;
 
 public class Graph extends ArrayList<Node> {
     private final ConcurrentHashMap<String, Agent> agents = new ConcurrentHashMap<>();
