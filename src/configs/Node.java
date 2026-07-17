@@ -1,19 +1,26 @@
 package configs;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Node {
 
-    private final String name;
-    private final List<Node> edges = new ArrayList<>();
-
+    private String name;
+    private List<Node> edges;
     public byte[] message;
 
-    private int state = 0;
-
     public Node(String name) {
+        setName(name);
+        this.edges = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name cannot be null");
         }
@@ -21,12 +28,36 @@ public class Node {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
+    public List<Node> getEdges() {
+        return new ArrayList<>(edges);
     }
 
-    public List<Node> getEdges() {
-        return Collections.unmodifiableList(edges);
+    public void setEdges(List<Node> edges) {
+        if (edges == null) {
+            throw new IllegalArgumentException("edges cannot be null");
+        }
+
+        this.edges = new ArrayList<>();
+        for (Node edge : edges) {
+            addEdge(edge);
+        }
+    }
+
+    public byte[] getMessage() {
+        if (message == null) {
+            return null;
+        }
+
+        return message.clone();
+    }
+
+    public void setMessage(byte[] message) {
+        if (message == null) {
+            this.message = null;
+            return;
+        }
+
+        this.message = message.clone();
     }
 
     public void addEdge(Node neighbor) {
@@ -40,31 +71,32 @@ public class Node {
     }
 
     public boolean hasCycles() {
-        return dfs();
+        return hasCycles(new HashSet<>(), new HashSet<>());
     }
 
-    private boolean dfs() {
-        if (state == 1) {
+    private boolean hasCycles(Set<Node> visited, Set<Node> recursionStack) {
+        if (recursionStack.contains(this)) {
             return true;
         }
 
-        if (state == 2) {
+        if (visited.contains(this)) {
             return false;
         }
 
-        state = 1;
+        visited.add(this);
+        recursionStack.add(this);
 
         for (Node neighbor : edges) {
-            if (neighbor.dfs()) {
+            if (neighbor.hasCycles(visited, recursionStack)) {
                 return true;
             }
         }
 
-        state = 2;
+        recursionStack.remove(this);
         return false;
     }
 
     public void resetState() {
-        state = 0;
+        // Kept for compatibility with earlier Graph code. Cycle detection is per-call now.
     }
 }

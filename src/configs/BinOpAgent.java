@@ -14,8 +14,10 @@ public class BinOpAgent implements Agent {
     private final String Topic_output;
     private final BinaryOperator<Double> op;
 
-    private Double value1 = null;
-    private Double value2 = null;
+    private double value1 = 0;
+    private double value2 = 0;
+    private boolean hasValue1 = false;
+    private boolean hasValue2 = false;
 
     public BinOpAgent(
             String name,
@@ -24,6 +26,10 @@ public class BinOpAgent implements Agent {
             String outputTopic,
             BinaryOperator<Double> op
     ) {
+        if (name == null || topic1 == null || topic2 == null || outputTopic == null || op == null) {
+            throw new IllegalArgumentException("BinOpAgent arguments cannot be null");
+        }
+
         this.Agent_name = name;
         this.Topic1_input = topic1;
         this.Topic2_input = topic2;
@@ -50,31 +56,36 @@ public class BinOpAgent implements Agent {
 
     @Override
     public void callback(String topic, Message msg) {
+        if (topic == null || msg == null || Double.isNaN(msg.asDouble)) {
+            return;
+        }
+
         if (topic.equals(Topic1_input)) {
             this.value1 = msg.asDouble;
-        }
-
-        if (topic.equals(Topic2_input)) {
+            this.hasValue1 = true;
+        } else if (topic.equals(Topic2_input)) {
             this.value2 = msg.asDouble;
+            this.hasValue2 = true;
+        } else {
+            return;
         }
 
-        if (value1 != null && value2 != null) {
+        if (hasValue1 && hasValue2 && !Double.isNaN(value1) && !Double.isNaN(value2)) {
             double result = this.op.apply(value1, value2);
-            Message resultMessage = new Message(result);
-
-            TopicManagerSingleton.get()
-                    .getTopic(Topic_output)
-                    .publish(resultMessage);
-
-            this.value1 = null;
-            this.value2 = null;
+            if (!Double.isNaN(result)) {
+                TopicManagerSingleton.get()
+                        .getTopic(Topic_output)
+                        .publish(new Message(result));
+            }
         }
     }
 
     @Override
     public void reset() {
-        this.value1 = null;
-        this.value2 = null;
+        this.value1 = 0;
+        this.value2 = 0;
+        this.hasValue1 = true;
+        this.hasValue2 = true;
     }
 
     @Override
