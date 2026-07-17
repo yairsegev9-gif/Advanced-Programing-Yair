@@ -4,6 +4,7 @@ public class AllTests {
     public static void main(String[] args) throws Exception {
         CoreGraphTest.main(args);
         GraphTest.main(args);
+        ConfigTest.main(args);
         System.out.println("AllTests passed");
     }
 }
