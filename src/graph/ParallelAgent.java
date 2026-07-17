@@ -2,6 +2,7 @@ package graph;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class ParallelAgent implements Agent {
 
@@ -10,7 +11,7 @@ public class ParallelAgent implements Agent {
     private final Thread workerThread;
     private final Object lifecycleLock = new Object();
 
-    private boolean closed = false;
+    private volatile boolean closed = false;
 
     private enum TaskType {
         CALLBACK,
@@ -84,13 +85,11 @@ public class ParallelAgent implements Agent {
 
     @Override
     public void callback(String topic, Message msg) {
-        synchronized (lifecycleLock) {
-            if (closed) {
-                return;
-            }
-
-            putTask(Task.callback(topic, msg));
+        if (closed) {
+            return;
         }
+
+        putTask(Task.callback(topic, msg));
     }
 
     @Override
@@ -100,13 +99,11 @@ public class ParallelAgent implements Agent {
 
     @Override
     public void reset() {
-        synchronized (lifecycleLock) {
-            if (closed) {
-                return;
-            }
-
-            putTask(Task.reset());
+        if (closed) {
+            return;
         }
+
+        putTask(Task.reset());
     }
 
     @Override
@@ -117,11 +114,15 @@ public class ParallelAgent implements Agent {
             }
 
             closed = true;
-            putTask(Task.shutdown());
+            if (!queue.offer(Task.shutdown())) {
+                queue.clear();
+                queue.offer(Task.shutdown());
+            }
+            workerThread.interrupt();
         }
 
         try {
-            workerThread.join();
+            workerThread.join(2000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -129,7 +130,11 @@ public class ParallelAgent implements Agent {
 
     private void putTask(Task task) {
         try {
-            queue.put(task);
+            while (!closed) {
+                if (queue.offer(task, 100, TimeUnit.MILLISECONDS)) {
+                    return;
+                }
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
