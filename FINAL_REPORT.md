@@ -151,3 +151,73 @@ The `WebAppTest` suite includes a final localhost HTTP smoke test covering stati
 7. Deploy the default form configuration.
 8. Publish values to topics `A` and `B` and inspect the values iframe.
 9. Press Enter in the `Main` run console to stop the server.
+# Submission Readiness Audit Addendum
+
+## Separate Exercise 1-5 Packages
+
+Created under `submission_artifacts/`:
+
+- `exercise1_submission.zip`
+- `exercise2_submission.zip`
+- `exercise3_submission.zip`
+- `exercise4_submission.zip`
+- `exercise5_submission.zip`
+
+Each ZIP contains package-`test` source copies plus `SUBMISSION_NOTES.txt`. Each package was compiled independently with:
+
+```powershell
+javac --release 17 -d compile_out *.java
+```
+
+Results:
+
+- Exercise 1 package: compile OK
+- Exercise 2 package: compile OK
+- Exercise 3 package: compile OK
+- Exercise 4 package: compile OK
+- Exercise 5 package: compile OK
+
+ZIP contents were inspected and contain only Java sources plus notes.
+
+## Final Submission Artifacts
+
+Created:
+
+- `submission_artifacts/final/link.txt`
+- `submission_artifacts/final/FINAL_SUBMISSION_CHECKLIST.md`
+- `submission_artifacts/video/VIDEO_SCRIPT_HE.md`
+- `submission_artifacts/video/VIDEO_SHOT_LIST_HE.md`
+- `submission_artifacts/video/VIDEO_SLIDES_OUTLINE_HE.md`
+- `submission_artifacts/video/DEMO_CONFIG.conf`
+
+The video materials are preparation files only. No fake video URL was added.
+
+## Javadoc
+
+Generated Javadoc into:
+
+```text
+docs/javadoc/
+```
+
+Generation command:
+
+```powershell
+javadoc -quiet -Xdoclint:none -d docs\javadoc -sourcepath src graph configs server servlets views
+```
+
+Result: exit code 0.
+
+## Runtime Artifact Handling
+
+`config_files/uploaded.conf` is a runtime-generated upload file. It was removed from the working tree and added to `.gitignore` so it will not be submitted accidentally.
+
+## Manual Actions Still Required
+
+- Fill in real submitter names, IDs, and emails in `README.md` and `submission_artifacts/final/link.txt`.
+- Replace `GIT_REPOSITORY_URL_HERE` in `link.txt` with the repository URL.
+- Record and upload the demo video.
+- Replace `DEMO_VIDEO_URL_HERE` in `README.md` with the real video URL.
+- Push the final branch/repository to a grader-accessible remote.
+- Submit the five ZIPs to Exercises 1-5 testing/module entries.
+- Submit only `link.txt` to the final Exercise 6 submission box.
