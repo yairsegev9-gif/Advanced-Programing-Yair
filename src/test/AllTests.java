@@ -5,6 +5,7 @@ public class AllTests {
         CoreGraphTest.main(args);
         GraphTest.main(args);
         ConfigTest.main(args);
+        HTTPServerTest.main(args);
         System.out.println("AllTests passed");
     }
 }
