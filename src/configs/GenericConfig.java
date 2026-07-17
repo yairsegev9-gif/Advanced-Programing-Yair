@@ -13,10 +13,22 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Generic file-backed configuration loader.
+ * A configuration file is read as groups of three lines: agent class name,
+ * comma-separated subscription topics, and comma-separated publication topics.
+ * Agents are constructed reflectively and wrapped in {@link graph.ParallelAgent}
+ * so callbacks execute asynchronously.
+ */
 public class GenericConfig implements Config {
     private String confFile;
     private final List<LoadedAgent> agents = new ArrayList<>();
 
+    /**
+     * Sets the configuration file to load on {@link #create()}.
+     *
+     * @param confFile path to a UTF-8 configuration file
+     */
     public void setConfFile(String confFile) {
         if (confFile == null || confFile.isBlank()) {
             throw new IllegalArgumentException("configuration file path cannot be blank");

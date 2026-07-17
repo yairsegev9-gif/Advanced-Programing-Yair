@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Publishes an optional topic/message query and returns an HTML table of latest
+ * topic values.
+ */
 public class TopicDisplayer implements Servlet {
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {

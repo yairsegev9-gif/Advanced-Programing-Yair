@@ -5,6 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A directed graph node used to visualize and validate computational graphs.
+ * Nodes hold outgoing edges and optional message bytes preserved for assignment
+ * compatibility.
+ */
 public class Node {
 
     private String name;

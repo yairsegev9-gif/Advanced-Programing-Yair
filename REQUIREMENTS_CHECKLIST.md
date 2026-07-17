@@ -87,3 +87,16 @@
 | Keep `Node.message` as `byte[]` | PDFs do not declare exact Java type; existing code used `byte[]` | assumption |
 | `T:<topic>` and `A:<agent>` node names are acceptable | Assignment only requires first character `T` or `A`; this avoids collisions | assumption |
 | Static HTML form posts textarea text as URL-encoded `config=` | Browser form behavior and no multipart parser requirement in PDF | assumption |
+## Final Exercise 6 Repository And Submission Requirements
+
+| Requirement | Implementation | Verification | Status |
+|---|---|---|---|
+| README with background, setup, run/test commands, demo placeholder, submitter placeholders | `README.md` | manual review | Complete |
+| Javadoc for reusable APIs | source Javadocs and `docs/javadoc/` | `javadoc` generation | Complete |
+| Demo video preparation | `submission_artifacts/video/` | manual review | Complete |
+| Final `link.txt` template | `submission_artifacts/final/link.txt` | file exists | Complete |
+| Separate Exercise 1-5 package-test submissions | `submission_artifacts/exercise*/` and ZIPs | independent compile of each package | Complete |
+| No integrated package migration for final project | original `src` packages preserved | git diff/source review | Complete |
+| Runtime upload file not versioned | `.gitignore` includes `config_files/uploaded.conf` | git status and ignored check | Complete |
+| No absolute local paths in source/docs | scan with `rg` | final verification | Complete |
+| No tracked IDE/output files | git file scan | final verification | Complete |

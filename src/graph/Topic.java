@@ -3,6 +3,11 @@ package graph;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * A named publish/subscribe channel in the computational graph.
+ * Topic uses concurrent sets so subscription and publication operations can be
+ * used safely by multiple agents and HTTP worker threads.
+ */
 public class Topic {
 
     public final String name;
@@ -21,6 +26,11 @@ public class Topic {
         this.pubs = ConcurrentHashMap.newKeySet();
     }
 
+    /**
+     * Registers an agent as a subscriber. Duplicate registration is ignored.
+     *
+     * @param agent subscriber to notify on publish
+     */
     public void subscribe(Agent agent) {
         if (agent == null) {
             throw new IllegalArgumentException("agent cannot be null");
@@ -53,6 +63,12 @@ public class Topic {
         pubs.remove(agent);
     }
 
+    /**
+     * Publishes a message to all current subscribers and remembers it as the
+     * latest topic value for display purposes.
+     *
+     * @param msg message to deliver
+     */
     public void publish(Message msg) {
         if (msg == null) {
             throw new IllegalArgumentException("message cannot be null");

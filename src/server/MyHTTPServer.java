@@ -21,6 +21,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Threaded HTTP server implementation with bounded worker concurrency.
+ * The accept loop runs on this thread after {@link #start()}, while client
+ * handling runs in a fixed-size worker pool. Registered servlets are stored in
+ * thread-safe maps and selected by longest URI prefix.
+ */
 public class MyHTTPServer extends Thread implements HTTPServer {
     private final int port;
     private final ExecutorService workers;
@@ -30,6 +36,13 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private volatile boolean stopped = false;
     private ServerSocket serverSocket;
 
+    /**
+     * Creates a server instance. Call {@link #start()} to begin accepting clients
+     * and {@link #close()} for shutdown.
+     *
+     * @param port TCP port to listen on
+     * @param nThreads maximum concurrent worker threads
+     */
     public MyHTTPServer(int port, int nThreads) {
         if (port < 0 || port > 65535) {
             throw new IllegalArgumentException("port must be between 0 and 65535");

@@ -8,8 +8,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Parses the subset of HTTP requests required by the project server.
+ * It extracts the command, URI, URI path segments, query parameters, headers,
+ * and optional request body using the Content-Length header.
+ */
 public class RequestParser {
 
+    /**
+     * Parses one HTTP request from a character reader.
+     *
+     * @param reader source containing the HTTP request
+     * @return parsed request information
+     * @throws IOException if the request is empty or malformed
+     */
     public static RequestInfo parseRequest(BufferedReader reader) throws IOException {
         if (reader == null) {
             throw new IllegalArgumentException("reader cannot be null");
@@ -108,6 +120,9 @@ public class RequestParser {
         return clean.split("/");
     }
 
+    /**
+     * Immutable parsed request data passed from the HTTP server to servlets.
+     */
     public static class RequestInfo {
         private final String httpCommand;
         private final String uri;

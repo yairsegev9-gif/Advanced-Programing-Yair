@@ -6,6 +6,10 @@ import graph.TopicManagerSingleton;
 
 import java.util.function.BinaryOperator;
 
+/**
+ * Binary-operation agent that combines two numeric input topics and publishes
+ * the result to one output topic.
+ */
 public class BinOpAgent implements Agent {
 
     private final String Agent_name;

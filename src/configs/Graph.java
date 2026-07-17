@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Directed computational graph built from the current TopicManager state.
+ * Topic nodes are named {@code T:<topic>} and agent nodes are named
+ * {@code A:<agent>}.
+ */
 public class Graph extends ArrayList<Node> {
 
     public void createFromTopics() {

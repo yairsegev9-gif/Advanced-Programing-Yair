@@ -8,6 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Serves static HTML files from a configured directory for requests below
+ * the {@code /app/} URI prefix.
+ */
 public class HtmlLoader implements Servlet {
     private final Path baseFolder;
 

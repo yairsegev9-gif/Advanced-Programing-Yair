@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Converts a computational {@link Graph} into simple SVG-based HTML.
+ */
 public class HtmlGraphWriter {
     public static List<String> getGraphHTML(Graph graph) {
         List<String> lines = new ArrayList<>();
