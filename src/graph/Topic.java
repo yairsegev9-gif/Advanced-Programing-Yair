@@ -1,39 +1,72 @@
 package graph;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Topic {
+
     public final String name;
-    private final List<Agent> subs;
-    private final List<Agent> pubs;
 
+    private final Set<Agent> subs;
+    private final Set<Agent> pubs;
 
-    Topic(String name){
+    Topic(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("name cannot be null");
+        }
+
         this.name = name;
-        this.pubs = new ArrayList<>();
-        this.subs = new ArrayList<>();
+        this.subs = ConcurrentHashMap.newKeySet();
+        this.pubs = ConcurrentHashMap.newKeySet();
     }
-    public void subscribe(Agent a){
-        subs.add(a);
-    }
-    public void unsubscribe(Agent a){
-        subs.remove(a);
-    }
-    public void addPublisher(Agent a){
-        pubs.add(a);
-    }
-    public void removePublisher(Agent a){
-        pubs.remove(a);
 
+    public void subscribe(Agent agent) {
+        if (agent == null) {
+            throw new IllegalArgumentException("agent cannot be null");
+        }
+
+        subs.add(agent);
     }
-    public void publish(Message msg){
-        for (Agent a: subs){
-            a.callback(this.name, msg);
+
+    public void unsubscribe(Agent agent) {
+        if (agent == null) {
+            return;
+        }
+
+        subs.remove(agent);
+    }
+
+    public void addPublisher(Agent agent) {
+        if (agent == null) {
+            throw new IllegalArgumentException("agent cannot be null");
+        }
+
+        pubs.add(agent);
+    }
+
+    public void removePublisher(Agent agent) {
+        if (agent == null) {
+            return;
+        }
+
+        pubs.remove(agent);
+    }
+
+    public void publish(Message msg) {
+        if (msg == null) {
+            throw new IllegalArgumentException("message cannot be null");
+        }
+
+        for (Agent agent : subs) {
+            agent.callback(name, msg);
         }
     }
 
+    public Set<Agent> getSubscribers() {
+        return Set.copyOf(subs);
+    }
 
-
-
+    public Set<Agent> getPublishers() {
+        return Set.copyOf(pubs);
+    }
 }

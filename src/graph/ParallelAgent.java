@@ -4,82 +4,134 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class ParallelAgent implements Agent {
+
     private final Agent agent;
     private final BlockingQueue<Task> queue;
     private final Thread workerThread;
+    private final Object lifecycleLock = new Object();
 
-    private static final Task SHUTDOWN_SIGNAL = new Task(null, null);
+    private boolean closed = false;
+
+    private enum TaskType {
+        CALLBACK,
+        RESET,
+        SHUTDOWN
+    }
 
     private static class Task {
+        final TaskType type;
         final String topic;
         final Message msg;
 
-        Task(String topic, Message msg) {
+        private Task(TaskType type, String topic, Message msg) {
+            this.type = type;
             this.topic = topic;
             this.msg = msg;
+        }
+
+        static Task callback(String topic, Message msg) {
+            return new Task(TaskType.CALLBACK, topic, msg);
+        }
+
+        static Task reset() {
+            return new Task(TaskType.RESET, null, null);
+        }
+
+        static Task shutdown() {
+            return new Task(TaskType.SHUTDOWN, null, null);
         }
     }
 
     public ParallelAgent(Agent agent, int capacity) {
+        if (agent == null) {
+            throw new IllegalArgumentException("agent cannot be null");
+        }
+
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity must be positive");
+        }
+
         this.agent = agent;
         this.queue = new ArrayBlockingQueue<>(capacity);
 
         this.workerThread = new Thread(() -> {
-            while (true) {
-                try {
+            try {
+                while (true) {
                     Task task = queue.take();
 
-                    if (task == SHUTDOWN_SIGNAL) {
-                        break;
+                    switch (task.type) {
+                        case CALLBACK:
+                            agent.callback(task.topic, task.msg);
+                            break;
+
+                        case RESET:
+                            agent.reset();
+                            break;
+
+                        case SHUTDOWN:
+                            return;
                     }
-
-                    String currentTopic = task.topic;
-                    Message currentMsg = task.msg;
-
-                    this.agent.callback(currentTopic, currentMsg);
-
-                } catch (InterruptedException e) {
-                    break;
                 }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                agent.close();
             }
-        });
+        }, "ParallelAgent-" + agent.getName());
 
         this.workerThread.start();
     }
 
     @Override
     public void callback(String topic, Message msg) {
-        if (!workerThread.isAlive() || queue.contains(SHUTDOWN_SIGNAL)) {
-            return;
-        }
-        try {
-            queue.put(new Task(topic, msg));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        synchronized (lifecycleLock) {
+            if (closed) {
+                return;
+            }
+
+            putTask(Task.callback(topic, msg));
         }
     }
 
     @Override
     public String getName() {
-        return this.agent.getName();
+        return agent.getName();
     }
 
     @Override
     public void reset() {
-        this.agent.reset();
+        synchronized (lifecycleLock) {
+            if (closed) {
+                return;
+            }
+
+            putTask(Task.reset());
+        }
     }
 
     @Override
     public void close() {
-        try {
-            if (!queue.contains(SHUTDOWN_SIGNAL)) {
-                queue.put(SHUTDOWN_SIGNAL);
+        synchronized (lifecycleLock) {
+            if (closed) {
+                return;
             }
-            this.workerThread.join();
+
+            closed = true;
+            putTask(Task.shutdown());
+        }
+
+        try {
+            workerThread.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        } finally {
-            this.agent.close();
+        }
+    }
+
+    private void putTask(Task task) {
+        try {
+            queue.put(task);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }
