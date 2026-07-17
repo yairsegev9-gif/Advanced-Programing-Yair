@@ -9,6 +9,7 @@ public class Topic {
 
     private final Set<Agent> subs;
     private final Set<Agent> pubs;
+    private volatile Message lastMessage;
 
     Topic(String name) {
         if (name == null) {
@@ -57,9 +58,14 @@ public class Topic {
             throw new IllegalArgumentException("message cannot be null");
         }
 
+        lastMessage = msg;
         for (Agent agent : subs) {
             agent.callback(name, msg);
         }
+    }
+
+    public Message getLastMessage() {
+        return lastMessage;
     }
 
     public Set<Agent> getSubscribers() {
