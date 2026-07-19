@@ -20,6 +20,7 @@ public class CoreGraphTest {
         testTopicManagerUniquenessAndClear();
         testParallelAgentOrderingAndReset();
         testParallelAgentCloseLifecycle();
+        testParallelAgentSurvivesWrappedAgentException();
         System.out.println("CoreGraphTest passed");
     }
 
@@ -113,6 +114,17 @@ public class CoreGraphTest {
         assertFalse(hasThreadNamed("ParallelAgent-blocked"), "parallel worker thread should not leak after close");
     }
 
+
+    private static void testParallelAgentSurvivesWrappedAgentException() throws Exception {
+        ThrowingRecordingAgent base = new ThrowingRecordingAgent("throws-once");
+        ParallelAgent parallel = new ParallelAgent(base, 4);
+        parallel.callback("topic", new Message("bad"));
+        Thread.sleep(100);
+        parallel.callback("topic", new Message("good"));
+        assertTrue(base.awaitEvents(1, 2000), "worker should continue after wrapped callback throws");
+        assertEquals("callback:topic:good", base.events.get(0), "second callback should be processed after exception");
+        parallel.close();
+    }
     private static boolean hasThreadNamed(String name) {
         for (Thread thread : Thread.getAllStackTraces().keySet()) {
             if (thread.getName().equals(name) && thread.isAlive()) {
@@ -148,10 +160,10 @@ public class CoreGraphTest {
 
     private static class RecordingAgent implements Agent {
         private final String name;
-        private final List<String> events = new ArrayList<>();
+        protected final List<String> events = new ArrayList<>();
         private volatile boolean closed;
 
-        private RecordingAgent(String name) {
+        protected RecordingAgent(String name) {
             this.name = name;
         }
 
@@ -195,6 +207,23 @@ public class CoreGraphTest {
         }
     }
 
+
+    private static class ThrowingRecordingAgent extends RecordingAgent {
+        private boolean first = true;
+
+        private ThrowingRecordingAgent(String name) {
+            super(name);
+        }
+
+        @Override
+        public void callback(String topic, Message msg) {
+            if (first) {
+                first = false;
+                throw new RuntimeException("expected test exception");
+            }
+            super.callback(topic, msg);
+        }
+    }
     private static class BlockingAgent implements Agent {
         private final String name;
         private final CountDownLatch started = new CountDownLatch(1);

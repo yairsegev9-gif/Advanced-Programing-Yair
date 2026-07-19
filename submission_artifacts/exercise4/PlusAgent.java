@@ -6,8 +6,8 @@ public class PlusAgent implements Agent {
     private final String[] pubs;
     private double x = 0;
     private double y = 0;
-    private boolean hasX = false;
-    private boolean hasY = false;
+    private boolean hasX = true;
+    private boolean hasY = true;
 
     public PlusAgent(String[] subs, String[] pubs) {
         if (subs == null || pubs == null || subs.length < 2 || pubs.length < 1) {

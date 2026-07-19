@@ -157,11 +157,24 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         path = normalizeUri(path);
         String best = null;
         for (String candidate : map.keySet()) {
-            if (path.startsWith(candidate) && (best == null || candidate.length() > best.length())) {
+            if (matchesPrefix(path, candidate) && (best == null || candidate.length() > best.length())) {
                 best = candidate;
             }
         }
         return best == null ? null : map.get(best);
+    }
+
+    private boolean matchesPrefix(String path, String candidate) {
+        if (candidate.equals("/")) {
+            return true;
+        }
+        if (path.equals(candidate)) {
+            return true;
+        }
+        if (candidate.endsWith("/")) {
+            return path.startsWith(candidate);
+        }
+        return path.startsWith(candidate + "/");
     }
 
     private Map<String, Servlet> servletMap(String command) {

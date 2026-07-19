@@ -33,11 +33,11 @@ public class ConfigTest {
 
         TopicManagerSingleton.get().getTopic("A").publish(new Message(4.0));
         TopicManagerSingleton.get().getTopic("B").publish(new Message(6.0));
-        assertDoubles(Arrays.asList(11.0), capture.values, "plus then inc should publish 11");
+        assertDoubles(Arrays.asList(5.0, 11.0), capture.values, "plus should use default zero, then plus and inc should publish 11");
 
         plus.reset();
         TopicManagerSingleton.get().getTopic("A").publish(new Message(2.0));
-        assertDoubles(Arrays.asList(11.0, 3.0), capture.values, "reset should make other plus input zero");
+        assertDoubles(Arrays.asList(5.0, 11.0, 3.0), capture.values, "reset should make other plus input zero");
 
         plus.close();
         inc.close();
@@ -69,7 +69,7 @@ public class ConfigTest {
         TopicManagerSingleton.get().getTopic("A").publish(new Message(7.0));
         TopicManagerSingleton.get().getTopic("B").publish(new Message(8.0));
         assertTrue(capture.awaitValues(1, 2000), "generic config should publish through parallel agents");
-        assertDoubles(Arrays.asList(16.0), capture.values, "generic config should run plus then inc");
+        assertDoubles(Arrays.asList(8.0, 16.0), capture.values, "generic config should use default zero and then run plus then inc");
 
         config.close();
         TopicManagerSingleton.get().clear();

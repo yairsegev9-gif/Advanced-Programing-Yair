@@ -62,6 +62,7 @@ public class HTTPServerTest {
         CountingServlet apiLong = new CountingServlet("api-long");
         CountingServlet replacement = new CountingServlet("replacement");
         server.addServlet("GET", "/", root);
+        server.addServlet("GET", "/app", new CountingServlet("app"));
         server.addServlet("GET", "/api/", api);
         server.addServlet("GET", "/api/long/", apiLong);
         server.addServlet("POST", "/echo", new EchoServlet());
@@ -69,6 +70,8 @@ public class HTTPServerTest {
         waitForServer(port);
 
         assertContains(send(port, "GET /api/long/value?x=1 HTTP/1.1\r\nHost: localhost\r\n\r\n"), "api-long", "longest prefix should win");
+        assertContains(send(port, "GET /app/page HTTP/1.1\r\nHost: localhost\r\n\r\n"), "app", "segment prefix should match child path");
+        assertContains(send(port, "GET /application HTTP/1.1\r\nHost: localhost\r\n\r\n"), "root", "segment prefix should not match /application for /app registration");
         assertContains(send(port, "GET /api/other HTTP/1.1\r\nHost: localhost\r\n\r\n"), "api", "shorter prefix should match when longest absent");
         assertContains(send(port, "POST /echo HTTP/1.1\r\nHost: localhost\r\nContent-Length: 3\r\n\r\nabc"), "abc", "POST servlet should receive body");
 

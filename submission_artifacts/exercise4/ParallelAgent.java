@@ -62,11 +62,17 @@ public class ParallelAgent implements Agent {
 
                     switch (task.type) {
                         case CALLBACK:
-                            agent.callback(task.topic, task.msg);
+                            try {
+                                agent.callback(task.topic, task.msg);
+                            } catch (RuntimeException ignored) {
+                            }
                             break;
 
                         case RESET:
-                            agent.reset();
+                            try {
+                                agent.reset();
+                            } catch (RuntimeException ignored) {
+                            }
                             break;
 
                         case SHUTDOWN:
