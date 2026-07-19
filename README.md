@@ -159,18 +159,9 @@ DEMO_VIDEO_URL_HERE
 
 After recording and uploading the video, replace this placeholder with the accessible video link.
 
-## 16. Submitters
 
-Submitter 1:
+## 16. Submitter
 
-- Name:
-- ID:
-- Email:
-
-Submitter 2:
-
-- Name:
-- ID:
-- Email:
-
-If submitting alone, remove the Submitter 2 block.
+- Name: Yair Segev
+- ID: 215979543
+- Email: yairsegev9@gmail.com

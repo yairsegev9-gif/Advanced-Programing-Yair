@@ -1,14 +1,7 @@
 Git repository:
 GIT_REPOSITORY_URL_HERE
 
-Submitter 1:
-Name:
-ID:
-Email:
-
-Submitter 2:
-Name:
-ID:
-Email:
-
-Note: If there is only one submitter, remove the Submitter 2 block before submission.
+Submitter:
+Name: Yair Segev
+ID: 215979543
+Email: yairsegev9@gmail.com

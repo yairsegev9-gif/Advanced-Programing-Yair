@@ -8,10 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Serves static HTML files from a configured directory for requests below
- * the {@code /app/} URI prefix.
- */
+
 public class HtmlLoader implements Servlet {
     private final Path baseFolder;
 
@@ -35,7 +32,17 @@ public class HtmlLoader implements Servlet {
         }
         Path target = baseFolder.resolve(fileName).normalize();
         if (!target.startsWith(baseFolder) || !Files.exists(target) || Files.isDirectory(target)) {
-            TopicDisplayer.writeHtml(toClient, "<html><body>File not found</body></html>");
+            byte[] bytes = "<html><body>File not found</body></html>"
+                    .getBytes(StandardCharsets.UTF_8);
+
+            toClient.write((
+                    "HTTP/1.1 404 Not Found\r\n" +
+                            "Content-Type: text/html; charset=utf-8\r\n" +
+                            "Content-Length: " + bytes.length + "\r\n" +
+                            "Connection: close\r\n\r\n"
+            ).getBytes(StandardCharsets.UTF_8));
+
+            toClient.write(bytes);
             return;
         }
         byte[] bytes = Files.readAllBytes(target);

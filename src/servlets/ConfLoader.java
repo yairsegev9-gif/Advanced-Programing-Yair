@@ -14,10 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Loads a configuration from an HTTP POST body, deploys it through
- * {@link configs.GenericConfig}, and returns the generated graph HTML.
- */
+
 public class ConfLoader implements Servlet {
     private GenericConfig currentConfig;
     private final Path uploadPath;
