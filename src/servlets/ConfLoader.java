@@ -32,6 +32,10 @@ public class ConfLoader implements Servlet {
                 ri.getHeaders().get("content-type")
         );
 
+        if (uploadedConfig == null) {
+            uploadedConfig = parseTextBody(ri.getContent());
+        }
+
         if (uploadedConfig == null || uploadedConfig.content().isBlank()) {
             TopicDisplayer.writeHtml(
                     toClient,
@@ -46,10 +50,16 @@ public class ConfLoader implements Servlet {
 
         TopicManagerSingleton.get().clear();
 
-        Files.createDirectories(uploadFolder);
-
         String safeFileName = sanitizeFileName(uploadedConfig.fileName());
-        Path savedFile = uploadFolder.resolve(safeFileName);
+
+        Path savedFile;
+
+        if (Files.exists(uploadFolder) && !Files.isDirectory(uploadFolder)) {
+            savedFile = uploadFolder;
+        } else {
+            Files.createDirectories(uploadFolder);
+            savedFile = uploadFolder.resolve(safeFileName);
+        }
 
         Files.writeString(
                 savedFile,
@@ -145,7 +155,24 @@ public class ConfLoader implements Servlet {
 
         return cleaned.isBlank() ? "uploaded.conf" : cleaned;
     }
+    private static UploadedConfig parseTextBody(byte[] bodyBytes) {
+        if (bodyBytes == null || bodyBytes.length == 0) {
+            return null;
+        }
 
+        String body = new String(bodyBytes, StandardCharsets.UTF_8).trim();
+
+        if (body.startsWith("config=")) {
+            String decoded = java.net.URLDecoder.decode(
+                    body.substring("config=".length()),
+                    StandardCharsets.UTF_8
+            );
+
+            return new UploadedConfig("uploaded.conf", decoded);
+        }
+
+        return new UploadedConfig("uploaded.conf", body);
+    }
     private record UploadedConfig(String fileName, String content) {
     }
 }
