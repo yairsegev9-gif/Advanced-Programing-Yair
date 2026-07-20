@@ -18,7 +18,9 @@ The implementation is divided into the following layers:
 - Web application: `Servlet`, `ConfLoader`, `TopicDisplayer`, `HtmlLoader`
 - View: `HtmlGraphWriter` and static HTML files
 
-The HTTP server uses longest-prefix URI matching, a bounded worker pool, and explicit shutdown. Configuration loading uses reflection and agent constructors of the form:
+The HTTP server uses longest-prefix URI matching, a bounded worker pool, and explicit shutdown.
+
+Configuration loading uses reflection and agent constructors of the form:
 
 ```java
 (String[] subs, String[] pubs)
