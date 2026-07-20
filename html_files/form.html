@@ -9,21 +9,25 @@
     label { display: block; margin: 8px 0 4px; font-weight: 600; }
     input, textarea, button { width: 100%; box-sizing: border-box; padding: 8px; }
     button { margin-top: 10px; cursor: pointer; }
-    textarea { min-height: 160px; font-family: Consolas, monospace; }
   </style>
 </head>
 <body>
-  <form action="/upload" method="post" target="graph">
-    <label for="config">Configuration</label>
-    <textarea id="config" name="config">configs.PlusAgent
-A,B
-C
-configs.IncAgent
-C
-D
-</textarea>
-    <button type="submit">deploy</button>
-  </form>
+<form action="/upload"
+      method="post"
+      enctype="multipart/form-data"
+      target="graph">
+
+  <label for="configFile">Configuration file</label>
+
+  <input
+          id="configFile"
+          name="config"
+          type="file"
+          accept=".conf,.txt"
+          required>
+
+  <button type="submit">deploy</button>
+</form>
   <form action="/publish" method="get" target="values">
     <label for="topic">Topic</label>
     <input id="topic" name="topic" value="A">
