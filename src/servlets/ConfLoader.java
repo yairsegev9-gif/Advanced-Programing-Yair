@@ -8,48 +8,63 @@ import views.HtmlGraphWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-
 public class ConfLoader implements Servlet {
     private GenericConfig currentConfig;
-    private final Path uploadPath;
+    private final Path uploadFolder;
 
     public ConfLoader() {
-        this(Path.of("config_files", "uploaded.conf"));
+        this(Path.of("config_files"));
     }
 
-    public ConfLoader(Path uploadPath) {
-        this.uploadPath = uploadPath;
+    public ConfLoader(Path uploadFolder) {
+        this.uploadFolder = uploadFolder;
     }
 
     @Override
     public synchronized void handle(RequestInfo ri, OutputStream toClient) throws IOException {
-        byte[] content = ri.getContent();
-        String configText = extractConfigText(new String(content, StandardCharsets.UTF_8));
-        if (configText.isBlank()) {
-            TopicDisplayer.writeHtml(toClient, "<html><body>No configuration content supplied.</body></html>");
+        UploadedConfig uploadedConfig = parseMultipart(
+                ri.getContent(),
+                ri.getHeaders().get("content-type")
+        );
+
+        if (uploadedConfig == null || uploadedConfig.content().isBlank()) {
+            TopicDisplayer.writeHtml(
+                    toClient,
+                    "<html><body>No configuration file supplied.</body></html>"
+            );
             return;
         }
 
         if (currentConfig != null) {
             currentConfig.close();
         }
+
         TopicManagerSingleton.get().clear();
-        Files.createDirectories(uploadPath.getParent());
-        Files.writeString(uploadPath, configText, StandardCharsets.UTF_8);
+
+        Files.createDirectories(uploadFolder);
+
+        String safeFileName = sanitizeFileName(uploadedConfig.fileName());
+        Path savedFile = uploadFolder.resolve(safeFileName);
+
+        Files.writeString(
+                savedFile,
+                uploadedConfig.content(),
+                StandardCharsets.UTF_8
+        );
 
         GenericConfig config = new GenericConfig();
-        config.setConfFile(uploadPath.toString());
+        config.setConfFile(savedFile.toString());
         config.create();
         currentConfig = config;
 
         Graph graph = new Graph();
         graph.createFromTopics();
+
         List<String> html = HtmlGraphWriter.getGraphHTML(graph);
         TopicDisplayer.writeHtml(toClient, String.join("\n", html));
     }
@@ -62,28 +77,75 @@ public class ConfLoader implements Servlet {
         }
     }
 
-    private static String extractConfigText(String body) {
-        if (body == null) {
-            return "";
+    private static UploadedConfig parseMultipart(
+            byte[] bodyBytes,
+            String contentType
+    ) {
+        if (bodyBytes == null || bodyBytes.length == 0) {
+            return null;
         }
-        String trimmed = body.trim();
-        if (trimmed.startsWith("config=")) {
-            return URLDecoder.decode(trimmed.substring("config=".length()), StandardCharsets.UTF_8).trim() + "\n";
+
+        if (contentType == null || !contentType.contains("boundary=")) {
+            return null;
         }
-        int marker = body.indexOf("\r\n\r\n");
-        int offset = 4;
-        if (marker < 0) {
-            marker = body.indexOf("\n\n");
-            offset = 2;
+
+        String boundary = "--" + contentType.substring(
+                contentType.indexOf("boundary=") + "boundary=".length()
+        ).trim();
+
+        String body = new String(bodyBytes, StandardCharsets.UTF_8);
+
+        int headerEnd = body.indexOf("\r\n\r\n");
+        if (headerEnd < 0) {
+            return null;
         }
-        if (body.contains("Content-Disposition") && marker >= 0) {
-            String multipartContent = body.substring(marker + offset);
-            int boundary = multipartContent.lastIndexOf("\n--");
-            if (boundary >= 0) {
-                multipartContent = multipartContent.substring(0, boundary);
-            }
-            return multipartContent.trim() + "\n";
+
+        String headers = body.substring(0, headerEnd);
+        String fileName = extractFileName(headers);
+
+        int contentStart = headerEnd + 4;
+        int contentEnd = body.indexOf("\r\n" + boundary, contentStart);
+
+        if (contentEnd < 0) {
+            return null;
         }
-        return trimmed + "\n";
+
+        String content = body.substring(contentStart, contentEnd);
+
+        return new UploadedConfig(fileName, content);
+    }
+
+    private static String extractFileName(String headers) {
+        String marker = "filename=\"";
+        int start = headers.indexOf(marker);
+
+        if (start < 0) {
+            return "uploaded.conf";
+        }
+
+        start += marker.length();
+        int end = headers.indexOf('"', start);
+
+        if (end < 0) {
+            return "uploaded.conf";
+        }
+
+        return headers.substring(start, end);
+    }
+
+    private static String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "uploaded.conf";
+        }
+
+        String cleaned = Path.of(fileName)
+                .getFileName()
+                .toString()
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+
+        return cleaned.isBlank() ? "uploaded.conf" : cleaned;
+    }
+
+    private record UploadedConfig(String fileName, String content) {
     }
 }

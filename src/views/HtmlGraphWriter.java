@@ -35,7 +35,24 @@ public class HtmlGraphWriter {
             for (Node to : from.getEdges()) {
                 int[] p2 = positions.get(to);
                 if (p1 != null && p2 != null) {
-                    lines.add("<line class=\"edge\" x1=\"" + p1[0] + "\" y1=\"" + p1[1] + "\" x2=\"" + p2[0] + "\" y2=\"" + p2[1] + "\"/>");
+                    double dx = p2[0] - p1[0];
+                    double dy = p2[1] - p1[1];
+                    double length = Math.sqrt(dx * dx + dy * dy);
+
+                    if (length > 0) {
+                        double targetRadius = to.getName().startsWith("T") ? 58 : 42;
+
+                        double x2 = p2[0] - (dx / length) * targetRadius;
+                        double y2 = p2[1] - (dy / length) * targetRadius;
+
+                        lines.add(
+                                "<line class=\"edge\" x1=\"" + p1[0] +
+                                        "\" y1=\"" + p1[1] +
+                                        "\" x2=\"" + x2 +
+                                        "\" y2=\"" + y2 +
+                                        "\"/>"
+                        );
+                    }
                 }
             }
         }

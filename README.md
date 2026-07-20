@@ -35,7 +35,7 @@ The server uses longest-prefix URI matching, a bounded worker pool, and explicit
 
 ## 4. Java Version
 
-Use Java 17.
+Java 17.
 
 ## 5. Installation
 
@@ -154,10 +154,10 @@ javadoc -d docs\javadoc -sourcepath src src\graph\*.java src\configs\*.java src\
 Video URL:
 
 ```text
-DEMO_VIDEO_URL_HERE
+Video link will be added.
 ```
 
-After recording and uploading the video, replace this placeholder with the accessible video link.
+
 
 
 ## 16. Submitter
